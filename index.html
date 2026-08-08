@@ -155,7 +155,7 @@
       box-shadow: 0 12px 30px rgba(0,0,0,0.5);
     }
 
-    /* Template 4: Classic Minimal (Previous) */
+    /* Template 4: Classic Minimal */
     [data-style="classic"] .player-card {
       background: transparent;
       border: none;
@@ -563,6 +563,26 @@
           blob: file,
           art: null
         };
+
+        // Extract ID3 Tags if jsmediatags is present
+        if (window.jsmediatags) {
+          window.jsmediatags.read(file, {
+            onSuccess: function(tag) {
+              if (tag.tags.title) trackObj.title = tag.tags.title;
+              if (tag.tags.artist) trackObj.artist = tag.tags.artist;
+              if (tag.tags.album) trackObj.album = tag.tags.album;
+              if (tag.tags.picture) {
+                const { data, format } = tag.tags.picture;
+                let base64String = "";
+                for (let i = 0; i < data.length; i++) {
+                  base64String += String.fromCharCode(data[i]);
+                }
+                trackObj.art = `data:${format};base64,${window.btoa(base64String)}`;
+              }
+            }
+          });
+        }
+
         await saveTrackToDB(trackObj);
         trackObj.url = URL.createObjectURL(file);
         playlist.push(trackObj);
