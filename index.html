@@ -1,41 +1,55 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark" data-style="ios-glass">
+<html lang="en" data-theme="dark" data-style="ios-glass" data-accent="purple">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-  <title>Minimal Music Player</title>
+  <title>Magnific Player Pro</title>
 
   <link rel="manifest" id="manifest-placeholder" />
   <meta name="theme-color" content="#0b0b0d" id="theme-color-meta" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
+  <!-- ID3 Tag Reader CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
 
   <style>
     :root {
-      --bg: #0d0e12;
-      --card-bg: rgba(28, 28, 35, 0.75);
+      --bg: #0a0b0e;
+      --card-bg: rgba(22, 24, 30, 0.78);
       --card-border: rgba(255, 255, 255, 0.12);
       --text: #ffffff;
-      --subtext: #a0a0ab;
-      --accent: #ffffff;
-      --glass-btn: rgba(255, 255, 255, 0.1);
-      --glass-btn-hover: rgba(255, 255, 255, 0.2);
+      --subtext: #9a9ab0;
+      --glass-btn: rgba(255, 255, 255, 0.08);
+      --glass-btn-hover: rgba(255, 255, 255, 0.16);
+      
+      /* Color Accents */
+      --accent-purple: #8b5cf6;
+      --accent-crimson: #ff3b5c;
+      --accent-emerald: #10b981;
+      --accent-gold: #f59e0b;
+      --accent-cyan: #06b6d4;
+      --accent: var(--accent-purple);
+      
       --radius-card: 32px;
-      --radius-art: 20px;
+      --radius-art: 22px;
     }
 
     [data-theme="light"] {
-      --bg: #eef0f5;
+      --bg: #eef1f6;
       --card-bg: rgba(255, 255, 255, 0.85);
       --card-border: rgba(0, 0, 0, 0.08);
-      --text: #121316;
-      --subtext: #6e707a;
-      --accent: #121316;
+      --text: #111215;
+      --subtext: #686b75;
       --glass-btn: rgba(0, 0, 0, 0.05);
       --glass-btn-hover: rgba(0, 0, 0, 0.12);
     }
+
+    [data-accent="purple"] { --accent: var(--accent-purple); }
+    [data-accent="crimson"] { --accent: var(--accent-crimson); }
+    [data-accent="emerald"] { --accent: var(--accent-emerald); }
+    [data-accent="gold"] { --accent: var(--accent-gold); }
+    [data-accent="cyan"] { --accent: var(--accent-cyan); }
 
     * {
       box-sizing: border-box;
@@ -59,7 +73,7 @@
       padding-bottom: env(safe-area-inset-bottom);
     }
 
-    /* Header */
+    /* Top Bar */
     header {
       display: flex;
       justify-content: space-between;
@@ -79,10 +93,10 @@
       justify-content: center;
       border-radius: 50%;
       cursor: pointer;
-      width: 42px;
-      height: 42px;
+      width: 44px;
+      height: 44px;
       font-size: 18px;
-      transition: transform 0.2s ease, background 0.2s ease;
+      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
     }
 
     .glass-btn:active { transform: scale(0.9); background: var(--glass-btn-hover); }
@@ -97,7 +111,6 @@
       touch-action: pan-y;
     }
 
-    /* Dynamic Player Styles */
     .player-card {
       width: 100%;
       max-width: 340px;
@@ -106,41 +119,44 @@
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border-radius: var(--radius-card);
-      padding: 20px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
       transition: all 0.3s ease;
+      position: relative;
     }
 
+    /* --- Template Presets --- */
+    
     /* Template 1: iOS Glass (Image 1 & 3) */
     [data-style="ios-glass"] .player-card {
-      padding: 20px;
+      padding: 22px;
     }
     [data-style="ios-glass"] .album-frame {
       width: 100%;
       aspect-ratio: 1;
       border-radius: var(--radius-art);
       overflow: hidden;
-      margin-bottom: 16px;
-      background: rgba(0,0,0,0.2);
+      margin-bottom: 18px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
     }
 
-    /* Template 2: Minimal Dark Card (Image 2) */
+    /* Template 2: Minimalist OLED Card (Image 2) */
     [data-style="minimal-dark"] .player-card {
       background: #000000;
-      border: 1px solid #1a1a1a;
+      border: 1px solid #1f1f1f;
       border-radius: 36px;
     }
     [data-style="minimal-dark"] .album-frame {
       width: 100%;
       aspect-ratio: 1;
       border-radius: 24px;
-      background: #121212;
+      background: #111111;
       margin-bottom: 20px;
     }
 
-    /* Template 3: Spotify Modern (Image 4) */
+    /* Template 3: Spotify Fluid Canvas (Image 4) */
     [data-style="spotify"] .player-card {
       background: transparent;
       border: none;
@@ -150,23 +166,38 @@
     [data-style="spotify"] .album-frame {
       width: 100%;
       aspect-ratio: 1;
-      border-radius: 12px;
+      border-radius: 16px;
       margin-bottom: 24px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+      box-shadow: 0 16px 36px rgba(0,0,0,0.4);
     }
 
-    /* Template 4: Classic Minimal */
-    [data-style="classic"] .player-card {
-      background: transparent;
+    /* Template 4: Neumorphic Soft Slate */
+    [data-style="neumorphic"] .player-card {
+      background: var(--bg);
       border: none;
-      box-shadow: none;
-      align-items: center;
+      box-shadow: 12px 12px 24px rgba(0, 0, 0, 0.4), -8px -8px 18px rgba(255, 255, 255, 0.03);
+      border-radius: 36px;
     }
-    [data-style="classic"] .album-frame {
-      width: 260px;
-      height: 260px;
-      border-radius: 28px;
-      border: 2px solid var(--card-border);
+    [data-style="neumorphic"] .album-frame {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 24px;
+      box-shadow: inset 4px 4px 8px rgba(0,0,0,0.5), inset -4px -4px 8px rgba(255,255,255,0.02);
+      margin-bottom: 20px;
+    }
+
+    /* Template 5: Retro Cyber Glow */
+    [data-style="cyber"] .player-card {
+      background: rgba(10, 10, 18, 0.9);
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 20px var(--accent);
+      border-radius: 20px;
+    }
+    [data-style="cyber"] .album-frame {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 12px;
+      border: 1px solid var(--accent);
       margin-bottom: 20px;
     }
 
@@ -182,7 +213,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 24px;
       text-align: center;
       width: 100%;
       height: 100%;
@@ -200,22 +231,14 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
-    .source-label {
-      font-size: 11px;
-      color: var(--subtext);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 2px;
-    }
-
-    .track-title { font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track-title { font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .track-artist { font-size: 13px; color: var(--subtext); margin-top: 2px; }
 
-    /* Progress & Sliders */
-    .progress-box { margin-bottom: 14px; }
+    /* Progress Bar */
+    .progress-box { margin-bottom: 16px; }
     .progress-bar {
       width: 100%;
       -webkit-appearance: none;
@@ -227,11 +250,12 @@
 
     .progress-bar::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
-      background: var(--text);
+      background: var(--accent);
       cursor: pointer;
+      box-shadow: 0 0 10px var(--accent);
     }
 
     .time-row {
@@ -242,65 +266,69 @@
       margin-top: 6px;
     }
 
-    /* Player Controls */
+    /* Controls */
     .controls-row {
       display: flex;
-      justify-content: space-between;
+      justify-content: space-around;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     .ctrl-btn {
-      background: none;
-      border: none;
+      background: transparent;
+      border: 1px solid transparent;
       color: var(--text);
       font-size: 20px;
       cursor: pointer;
-      opacity: 0.8;
-      transition: transform 0.15s ease;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
     }
 
     .ctrl-btn:active { transform: scale(0.85); }
 
     .play-btn {
-      width: 52px;
-      height: 52px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
-      background: var(--text);
-      color: var(--bg);
+      background: var(--accent);
+      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 22px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
     }
 
-    .output-pill {
-      align-self: center;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid var(--card-border);
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 12px;
+    /* Mode Status Badge */
+    .mode-indicator {
+      text-align: center;
+      font-size: 11px;
       font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
       margin-top: 4px;
+      min-height: 16px;
     }
 
-    /* Soundbars Visualizer */
+    /* Equalizer Soundbars */
     .soundbars {
       display: flex;
       align-items: flex-end;
       gap: 3px;
-      height: 20px;
+      height: 18px;
       justify-content: center;
-      margin-top: 8px;
+      margin-top: 10px;
     }
 
     .bar {
       width: 3px;
-      background: var(--text);
+      background: var(--accent);
       height: 4px;
       border-radius: 2px;
       transition: height 0.1s ease;
@@ -312,40 +340,36 @@
     .soundbars.playing .bar:nth-child(2n) { animation-delay: 0.2s; }
     .soundbars.playing .bar:nth-child(3n) { animation-delay: 0.4s; }
 
-    @keyframes pulse { 0% { height: 4px; } 100% { height: 20px; } }
+    @keyframes pulse { 0% { height: 4px; } 100% { height: 18px; } }
 
-    /* Left Drawer (Library) & Right Drawer (Settings) */
-    .drawer {
-      position: fixed;
-      top: 0;
-      width: 80%;
-      max-width: 320px;
-      height: 100%;
-      background: var(--bg);
-      border-color: var(--card-border);
-      z-index: 100;
-      transition: all 0.3s ease;
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-    }
-
-    .drawer-left { left: -100%; border-right: 1px solid var(--card-border); }
-    .drawer-left.open { left: 0; }
-
-    .drawer-right { right: -100%; border-left: 1px solid var(--card-border); }
-    .drawer-right.open { right: 0; }
-
+    /* Drawer Side Menu */
     .drawer-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
       z-index: 90;
       display: none;
     }
     .drawer-overlay.open { display: block; }
 
-    /* Library Grouping Styles */
+    .drawer-left {
+      position: fixed;
+      top: 0;
+      left: -100%;
+      width: 82%;
+      max-width: 320px;
+      height: 100%;
+      background: var(--bg);
+      border-right: 1px solid var(--card-border);
+      z-index: 100;
+      transition: left 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+    .drawer-left.open { left: 0; }
+
     .nav-tabs { display: flex; gap: 8px; margin: 16px 0; }
     .tab-btn {
       background: var(--glass-btn);
@@ -356,25 +380,75 @@
       font-size: 12px;
       cursor: pointer;
     }
-    .tab-btn.active { background: var(--text); color: var(--bg); }
+    .tab-btn.active { background: var(--accent); color: #fff; }
 
     .list-container { flex: 1; overflow-y: auto; }
     .group-header {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       padding: 10px 0 4px 0;
-      color: var(--text);
+      color: var(--accent);
       border-bottom: 1px solid var(--card-border);
     }
     .list-item {
-      padding: 10px 0 10px 12px;
+      padding: 10px 0 10px 8px;
       border-bottom: 1px solid rgba(255,255,255,0.05);
       cursor: pointer;
     }
 
-    /* Settings Options */
-    .setting-group { margin-top: 20px; }
-    .setting-label { font-size: 12px; color: var(--subtext); margin-bottom: 8px; text-transform: uppercase; }
+    /* Bottom Floating Action Switch Menu */
+    .floating-settings-btn {
+      position: fixed;
+      bottom: calc(20px + env(safe-area-inset-bottom));
+      right: 20px;
+      z-index: 120;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      font-size: 22px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease;
+    }
+
+    .floating-settings-btn:active { transform: scale(0.9); }
+
+    .bottom-sheet {
+      position: fixed;
+      bottom: -100%;
+      left: 0;
+      width: 100%;
+      background: var(--bg);
+      border-top-left-radius: 28px;
+      border-top-right-radius: 28px;
+      border-top: 1px solid var(--card-border);
+      z-index: 110;
+      padding: 24px;
+      padding-bottom: calc(28px + env(safe-area-inset-bottom));
+      box-shadow: 0 -15px 35px rgba(0,0,0,0.5);
+      transition: bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .bottom-sheet.open { bottom: 0; }
+
+    .sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .setting-label { font-size: 12px; color: var(--subtext); margin-bottom: 6px; text-transform: uppercase; }
     .option-select {
       width: 100%;
       padding: 10px;
@@ -384,24 +458,38 @@
       color: var(--text);
       font-size: 14px;
       outline: none;
-      margin-bottom: 16px;
     }
+
+    .color-picker-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .color-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.2s;
+    }
+
+    .color-dot:active { transform: scale(0.9); }
+    .color-dot.active { border-color: var(--text); }
 
     #folder-input { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- Top Header Controls -->
+  <!-- Top Navigation Header -->
   <header>
-    <button class="glass-btn" onclick="toggleDrawer('left')" aria-label="Library">☰</button>
-    <div style="display: flex; gap: 10px;">
-      <button class="glass-btn" onclick="document.getElementById('folder-input').click()" aria-label="Open Folder">📁</button>
-      <button class="glass-btn" onclick="toggleDrawer('right')" aria-label="Settings">⚙</button>
-    </div>
+    <button class="glass-btn" onclick="toggleLibrary()" aria-label="Library">☰</button>
+    <button class="glass-btn" onclick="document.getElementById('folder-input').click()" aria-label="Open Folder">📁</button>
   </header>
 
-  <!-- Main Player View -->
+  <!-- Main Player Display -->
   <main class="main-player" id="swipe-area">
     <div class="player-card">
       <div class="album-frame">
@@ -413,9 +501,8 @@
 
       <div class="track-info">
         <div style="overflow: hidden; padding-right: 8px;">
-          <div class="source-label" id="source-label">iPhone</div>
           <div class="track-title" id="player-title">No Track Loaded</div>
-          <div class="track-artist" id="player-artist">Tap 📁 to load music</div>
+          <div class="track-artist" id="player-artist">Tap 📁 to choose music</div>
         </div>
         <button class="ctrl-btn" id="fav-btn" onclick="toggleFav()">☆</button>
       </div>
@@ -429,16 +516,14 @@
       </div>
 
       <div class="controls-row">
-        <button class="ctrl-btn" id="shuffle-btn" onclick="toggleShuffle()">🔀</button>
         <button class="ctrl-btn" onclick="playPrev()">⏮</button>
         <button class="ctrl-btn play-btn" id="play-btn" onclick="togglePlay()">▶</button>
         <button class="ctrl-btn" onclick="playNext()">⏭</button>
-        <button class="ctrl-btn" id="repeat-btn" onclick="toggleRepeat()">🔁</button>
+        <button class="ctrl-btn" id="mode-btn" onclick="cyclePlaybackMode()">🔀</button>
       </div>
 
-      <div class="output-pill" id="output-pill">
-        <span>🎧</span> <span id="output-text">AirPods Pro</span>
-      </div>
+      <!-- Mode Label (Shuffle/Repeat Status) -->
+      <div class="mode-indicator" id="mode-indicator">Mode: Normal</div>
 
       <div class="soundbars" id="soundbars">
         <div class="bar"></div><div class="bar"></div><div class="bar"></div>
@@ -448,8 +533,8 @@
   </main>
 
   <!-- Left Library Drawer -->
-  <div class="drawer-overlay" id="overlay" onclick="closeDrawers()"></div>
-  <div class="drawer drawer-left" id="drawer-left">
+  <div class="drawer-overlay" id="overlay" onclick="closeAllPanels()"></div>
+  <div class="drawer-left" id="drawer-left">
     <h2>Library</h2>
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="renderView('songs', this)">Songs</button>
@@ -457,15 +542,21 @@
       <button class="tab-btn" onclick="renderView('artists', this)">Artists</button>
     </div>
     <div class="list-container" id="list-container">
-      <div style="font-size:12px; color:var(--subtext); padding-top:10px;">No offline songs saved yet.</div>
+      <div style="font-size:12px; color:var(--subtext); padding-top:10px;">No music loaded yet.</div>
     </div>
   </div>
 
-  <!-- Right Settings Drawer -->
-  <div class="drawer drawer-right" id="drawer-right">
-    <h2>Settings</h2>
-    
-    <div class="setting-group">
+  <!-- Bottom Floating Switch Button -->
+  <button class="floating-settings-btn" onclick="toggleBottomSheet()" aria-label="Settings">⚙</button>
+
+  <!-- Bottom Sheet Popup Options -->
+  <div class="bottom-sheet" id="bottom-sheet">
+    <div class="sheet-header">
+      <span>App Customization</span>
+      <button class="glass-btn" style="width:32px; height:32px; font-size:14px;" onclick="toggleBottomSheet()">✕</button>
+    </div>
+
+    <div>
       <div class="setting-label">Appearance Theme</div>
       <select class="option-select" onchange="setTheme(this.value)">
         <option value="dark">Dark Theme</option>
@@ -473,14 +564,26 @@
       </select>
     </div>
 
-    <div class="setting-group">
-      <div class="setting-label">Player Template Style</div>
+    <div>
+      <div class="setting-label">Player Layout Template</div>
       <select class="option-select" onchange="setStyle(this.value)">
         <option value="ios-glass">iOS Glass Card (Image 1 & 3)</option>
-        <option value="minimal-dark">Minimal Dark Card (Image 2)</option>
-        <option value="spotify">Spotify Modern (Image 4)</option>
-        <option value="classic">Classic Minimal</option>
+        <option value="minimal-dark">Minimalist OLED Card (Image 2)</option>
+        <option value="spotify">Spotify Fluid Canvas (Image 4)</option>
+        <option value="neumorphic">Neumorphic Soft Slate</option>
+        <option value="cyber">Retro Cyber Glow</option>
       </select>
+    </div>
+
+    <div>
+      <div class="setting-label">Custom Accent Color</div>
+      <div class="color-picker-row">
+        <div class="color-dot active" style="background:#8b5cf6;" onclick="setAccent('purple', this)"></div>
+        <div class="color-dot" style="background:#ff3b5c;" onclick="setAccent('crimson', this)"></div>
+        <div class="color-dot" style="background:#10b981;" onclick="setAccent('emerald', this)"></div>
+        <div class="color-dot" style="background:#f59e0b;" onclick="setAccent('gold', this)"></div>
+        <div class="color-dot" style="background:#06b6d4;" onclick="setAccent('cyan', this)"></div>
+      </div>
     </div>
   </div>
 
@@ -498,14 +601,17 @@
 
     let playlist = [];
     let currentIndex = -1;
-    let isShuffle = false;
-    let isRepeat = false;
+    
+    // Playback Modes: 0 = Normal, 1 = Shuffle, 2 = Repeat 1, 3 = Repeat All
+    let playbackMode = 0; 
+    const modeLabels = ["Mode: Normal", "Mode: Shuffle", "Mode: Repeat Single", "Mode: Repeat All"];
+    const modeIcons = ["➡️", "🔀", "🔂", "🔁"];
 
     const audio = document.getElementById('audio-player');
     const seekBar = document.getElementById('seek-bar');
     const soundbars = document.getElementById('soundbars');
 
-    // Register Service Worker for Full Offline Capability
+    // Service Worker for Offline Functionality
     if ('serviceWorker' in navigator) {
       const swCode = `
         self.addEventListener('install', e => self.skipWaiting());
@@ -515,7 +621,7 @@
       navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
     }
 
-    // --- IndexedDB Local Track Caching ---
+    // --- IndexedDB Local Track Storage ---
     function openDB() {
       return new Promise((resolve, reject) => {
         const req = indexedDB.open('MusicStorageDB', 1);
@@ -564,7 +670,7 @@
           art: null
         };
 
-        // Extract ID3 Tags if jsmediatags is present
+        // Extract ID3 Metadata
         if (window.jsmediatags) {
           window.jsmediatags.read(file, {
             onSuccess: function(tag) {
@@ -574,9 +680,7 @@
               if (tag.tags.picture) {
                 const { data, format } = tag.tags.picture;
                 let base64String = "";
-                for (let i = 0; i < data.length; i++) {
-                  base64String += String.fromCharCode(data[i]);
-                }
+                for (let i = 0; i < data.length; i++) base64String += String.fromCharCode(data[i]);
                 trackObj.art = `data:${format};base64,${window.btoa(base64String)}`;
               }
             }
@@ -591,24 +695,35 @@
       if (playlist.length) loadTrack(0, false);
     });
 
-    // --- Navigation & Settings ---
-    function toggleDrawer(side) {
-      closeDrawers();
-      document.getElementById(`drawer-${side}`).classList.add('open');
+    // --- UI Controls & Sheet Toggle ---
+    function toggleLibrary() {
+      closeAllPanels();
+      document.getElementById('drawer-left').classList.add('open');
       document.getElementById('overlay').classList.add('open');
     }
 
-    function closeDrawers() {
-      document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
+    function toggleBottomSheet() {
+      const sheet = document.getElementById('bottom-sheet');
+      const isOpen = sheet.classList.contains('open');
+      closeAllPanels();
+      if (!isOpen) {
+        sheet.classList.add('open');
+        document.getElementById('overlay').classList.add('open');
+      }
+    }
+
+    function closeAllPanels() {
+      document.getElementById('drawer-left').classList.remove('open');
+      document.getElementById('bottom-sheet').classList.remove('open');
       document.getElementById('overlay').classList.remove('open');
     }
 
-    function setTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-    }
-
-    function setStyle(style) {
-      document.documentElement.setAttribute('data-style', style);
+    function setTheme(theme) { document.documentElement.setAttribute('data-theme', theme); }
+    function setStyle(style) { document.documentElement.setAttribute('data-style', style); }
+    function setAccent(accent, el) {
+      document.documentElement.setAttribute('data-accent', accent);
+      document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+      el.classList.add('active');
     }
 
     function toggleFav() {
@@ -616,7 +731,14 @@
       btn.innerText = btn.innerText === '☆' ? '★' : '☆';
     }
 
-    // --- Library Views (Divided by Songs, Albums, Artists) ---
+    // --- Unified Mode Toggle ---
+    function cyclePlaybackMode() {
+      playbackMode = (playbackMode + 1) % 4;
+      document.getElementById('mode-btn').innerText = modeIcons[playbackMode];
+      document.getElementById('mode-indicator').innerText = modeLabels[playbackMode];
+    }
+
+    // --- Library Rendering ---
     function renderView(type, btn) {
       if (btn) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -628,7 +750,7 @@
 
       if (type === 'songs') {
         container.innerHTML = playlist.map((t, i) => `
-          <div class="list-item" onclick="loadTrack(${i}); closeDrawers();">
+          <div class="list-item" onclick="loadTrack(${i}); closeAllPanels();">
             <div style="font-weight:600; font-size:14px;">${t.title}</div>
             <div style="font-size:12px; color:var(--subtext);">${t.artist}</div>
           </div>
@@ -645,7 +767,7 @@
         container.innerHTML = Object.keys(groups).map(groupName => `
           <div class="group-header">${groupName} (${groups[groupName].length})</div>
           ${groups[groupName].map(t => `
-            <div class="list-item" onclick="loadTrack(${t.originalIndex}); closeDrawers();">
+            <div class="list-item" onclick="loadTrack(${t.originalIndex}); closeAllPanels();">
               <div style="font-weight:600; font-size:13px;">${t.title}</div>
             </div>
           `).join('')}
@@ -663,7 +785,7 @@
       if (touchEndX > touchStartX + 50) playPrev();
     });
 
-    // --- Audio Playback ---
+    // --- Audio Logic ---
     function loadTrack(index, autoPlay = true) {
       currentIndex = index;
       const track = playlist[currentIndex];
@@ -706,7 +828,11 @@
 
     function playNext() {
       if (!playlist.length) return;
-      currentIndex = isShuffle ? Math.floor(Math.random() * playlist.length) : (currentIndex + 1) % playlist.length;
+      if (playbackMode === 1) { // Shuffle
+        currentIndex = Math.floor(Math.random() * playlist.length);
+      } else {
+        currentIndex = (currentIndex + 1) % playlist.length;
+      }
       loadTrack(currentIndex);
     }
 
@@ -716,19 +842,13 @@
       loadTrack(currentIndex);
     }
 
-    function toggleShuffle() {
-      isShuffle = !isShuffle;
-      document.getElementById('shuffle-btn').style.opacity = isShuffle ? "1" : "0.4";
-    }
-
-    function toggleRepeat() {
-      isRepeat = !isRepeat;
-      document.getElementById('repeat-btn').style.opacity = isRepeat ? "1" : "0.4";
-    }
-
     audio.addEventListener('ended', () => {
-      if (isRepeat) { audio.currentTime = 0; audio.play(); }
-      else playNext();
+      if (playbackMode === 2) { // Repeat Single
+        audio.currentTime = 0;
+        audio.play();
+      } else {
+        playNext();
+      }
     });
 
     audio.addEventListener('timeupdate', () => {
