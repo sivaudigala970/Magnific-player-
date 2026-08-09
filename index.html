@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  <!-- ID3 Tag Reader CDN -->
+  <!-- ID3 Tag Reader Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
 
   <style>
@@ -23,7 +23,7 @@
       --glass-btn: rgba(255, 255, 255, 0.08);
       --glass-btn-hover: rgba(255, 255, 255, 0.16);
       
-      /* Color Accents */
+      /* Accent Colors */
       --accent-purple: #8b5cf6;
       --accent-crimson: #ff3b5c;
       --accent-emerald: #10b981;
@@ -133,9 +133,7 @@
       position: relative;
     }
 
-    /* --- Templates --- */
-    
-    /* Template 1: iOS Glass */
+    /* Card Templates */
     [data-style="ios-glass"] .player-card { padding: 22px; }
     [data-style="ios-glass"] .album-frame {
       width: 100%;
@@ -146,7 +144,6 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.25);
     }
 
-    /* Template 2: Minimalist OLED Card */
     [data-style="minimal-dark"] .player-card {
       background: #000000;
       border: 1px solid #1f1f1f;
@@ -160,7 +157,6 @@
       margin-bottom: 20px;
     }
 
-    /* Template 3: Spotify Fluid Canvas */
     [data-style="spotify"] .player-card {
       background: transparent;
       border: none;
@@ -175,7 +171,6 @@
       box-shadow: 0 16px 36px rgba(0,0,0,0.4);
     }
 
-    /* Template 4: Neumorphic Soft Slate */
     [data-style="neumorphic"] .player-card {
       background: var(--bg);
       border: none;
@@ -190,7 +185,6 @@
       margin-bottom: 20px;
     }
 
-    /* Template 5: Retro Cyber Glow */
     [data-style="cyber"] .player-card {
       background: rgba(10, 10, 18, 0.9);
       border: 2px solid var(--accent);
@@ -270,7 +264,7 @@
       margin-top: 6px;
     }
 
-    /* Perfectly Aligned Music Controls Row */
+    /* Controls Alignment */
     .controls-row {
       display: flex;
       justify-content: space-between;
@@ -321,7 +315,7 @@
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 0 15px var(--accent);
     }
 
-    /* Equalizer Soundbars */
+    /* Equalizer Visualizer */
     .soundbars {
       display: flex;
       align-items: flex-end;
@@ -358,7 +352,7 @@
     }
     .drawer-overlay.open { display: block; }
 
-    /* Right Library Drawer */
+    /* Top Right Library Drawer */
     .drawer-right {
       position: fixed;
       top: 0;
@@ -376,7 +370,7 @@
     }
     .drawer-right.open { right: 0; }
 
-    /* Side-by-Side Ambient Light Tabs */
+    /* Side-by-Side Tab Buttons */
     .nav-tabs {
       display: flex;
       gap: 8px;
@@ -425,7 +419,7 @@
     }
     .list-item:active { background: var(--glass-btn-hover); }
 
-    /* Import Files Options UI */
+    /* Files Import Box */
     .file-import-box {
       display: flex;
       flex-direction: column;
@@ -482,7 +476,7 @@
 
     .floating-settings-btn:active { transform: scale(0.9); }
 
-    /* Bottom Sheet Popup Options */
+    /* Bottom Sheet Settings Menu */
     .bottom-sheet {
       position: fixed;
       bottom: -100%;
@@ -547,13 +541,13 @@
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
+  <!-- Header Section -->
   <header>
     <div class="app-title">Magnific</div>
     <button class="glass-btn" onclick="toggleLibrary()" aria-label="Library">☰</button>
   </header>
 
-  <!-- Main Player Display -->
+  <!-- Player Display Area -->
   <main class="main-player" id="swipe-area">
     <div class="player-card">
       <div class="album-frame">
@@ -579,7 +573,7 @@
         </div>
       </div>
 
-      <!-- Controls Bar with Separate Shuffle & Repeat Options -->
+      <!-- Controls Row -->
       <div class="controls-row">
         <button class="ctrl-btn" id="shuffle-btn" onclick="toggleShuffle()" title="Shuffle">🔀</button>
         <button class="ctrl-btn" onclick="playPrev()" title="Previous">⏮</button>
@@ -595,10 +589,9 @@
     </div>
   </main>
 
-  <!-- Overlay -->
   <div class="drawer-overlay" id="overlay" onclick="closeAllPanels()"></div>
 
-  <!-- Top-Right Library Drawer with Side-by-Side Ambient Light Tabs -->
+  <!-- Top-Right Library Drawer -->
   <div class="drawer-right" id="drawer-right">
     <h2>Library</h2>
     
@@ -614,10 +607,10 @@
     </div>
   </div>
 
-  <!-- Bottom Floating Switch Button -->
+  <!-- Bottom Floating Switch Trigger -->
   <button class="floating-settings-btn" onclick="toggleBottomSheet()" aria-label="Settings">⚙</button>
 
-  <!-- Bottom Sheet Customization Menu -->
+  <!-- Bottom Sheet Menu -->
   <div class="bottom-sheet" id="bottom-sheet">
     <div class="sheet-header">
       <span>App Customization</span>
@@ -655,7 +648,7 @@
     </div>
   </div>
 
-  <!-- Hidden File Inputs -->
+  <!-- Native File Pickers -->
   <input type="file" id="file-input" multiple accept="audio/*" />
   <input type="file" id="folder-input" webkitdirectory directory multiple accept="audio/*" />
   
@@ -679,8 +672,17 @@
     const seekBar = document.getElementById('seek-bar');
     const soundbars = document.getElementById('soundbars');
 
-    // Register Service Worker for Offline Capability
+    // Register Service Worker for Offline Execution
     if ('serviceWorker' in navigator) {
       const swCode = `
         self.addEventListener('install', e => self.skipWaiting());
-        self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch
+        self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+      `;
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+    }
+
+    // --- IndexedDB Cache Engine ---
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open('MusicStorag
