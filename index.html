@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-  <title>Magnific Player Pro</title>
+  <title>Magnific Music Player</title>
 
   <link rel="manifest" id="manifest-placeholder" />
-  <meta name="theme-color" content="#0b0b0d" id="theme-color-meta" />
+  <meta name="theme-color" content="#0a0b0e" id="theme-color-meta" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
@@ -16,7 +16,7 @@
   <style>
     :root {
       --bg: #0a0b0e;
-      --card-bg: rgba(22, 24, 30, 0.78);
+      --card-bg: rgba(22, 24, 30, 0.82);
       --card-border: rgba(255, 255, 255, 0.12);
       --text: #ffffff;
       --subtext: #9a9ab0;
@@ -37,7 +37,7 @@
 
     [data-theme="light"] {
       --bg: #eef1f6;
-      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-bg: rgba(255, 255, 255, 0.88);
       --card-border: rgba(0, 0, 0, 0.08);
       --text: #111215;
       --subtext: #686b75;
@@ -73,13 +73,19 @@
       padding-bottom: env(safe-area-inset-bottom);
     }
 
-    /* Top Bar */
+    /* Top Navigation Header */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 16px 20px;
       z-index: 10;
+    }
+
+    .app-title {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
     }
 
     .glass-btn {
@@ -96,7 +102,7 @@
       width: 44px;
       height: 44px;
       font-size: 18px;
-      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .glass-btn:active { transform: scale(0.9); background: var(--glass-btn-hover); }
@@ -127,12 +133,10 @@
       position: relative;
     }
 
-    /* --- Template Presets --- */
+    /* --- Templates --- */
     
-    /* Template 1: iOS Glass (Image 1 & 3) */
-    [data-style="ios-glass"] .player-card {
-      padding: 22px;
-    }
+    /* Template 1: iOS Glass */
+    [data-style="ios-glass"] .player-card { padding: 22px; }
     [data-style="ios-glass"] .album-frame {
       width: 100%;
       aspect-ratio: 1;
@@ -142,7 +146,7 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.25);
     }
 
-    /* Template 2: Minimalist OLED Card (Image 2) */
+    /* Template 2: Minimalist OLED Card */
     [data-style="minimal-dark"] .player-card {
       background: #000000;
       border: 1px solid #1f1f1f;
@@ -156,7 +160,7 @@
       margin-bottom: 20px;
     }
 
-    /* Template 3: Spotify Fluid Canvas (Image 4) */
+    /* Template 3: Spotify Fluid Canvas */
     [data-style="spotify"] .player-card {
       background: transparent;
       border: none;
@@ -266,19 +270,21 @@
       margin-top: 6px;
     }
 
-    /* Controls */
+    /* Perfectly Aligned Music Controls Row */
     .controls-row {
       display: flex;
-      justify-content: space-around;
+      justify-content: space-between;
       align-items: center;
+      width: 100%;
       margin-bottom: 8px;
+      padding: 0 4px;
     }
 
     .ctrl-btn {
-      background: transparent;
-      border: 1px solid transparent;
+      background: var(--glass-btn);
+      border: 1px solid var(--card-border);
       color: var(--text);
-      font-size: 20px;
+      font-size: 18px;
       cursor: pointer;
       border-radius: 50%;
       width: 44px;
@@ -286,34 +292,33 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
+      opacity: 0.7;
     }
 
-    .ctrl-btn:active { transform: scale(0.85); }
+    .ctrl-btn:active { transform: scale(0.88); }
+
+    .ctrl-btn.active-glow {
+      opacity: 1;
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 14px var(--accent);
+      background: rgba(255, 255, 255, 0.12);
+    }
 
     .play-btn {
-      width: 56px;
-      height: 56px;
+      width: 58px;
+      height: 58px;
       border-radius: 50%;
       background: var(--accent);
-      color: #fff;
+      color: #ffffff;
+      border: none;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 22px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-    }
-
-    /* Mode Status Badge */
-    .mode-indicator {
-      text-align: center;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--accent);
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      margin-top: 4px;
-      min-height: 16px;
+      opacity: 1;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 0 15px var(--accent);
     }
 
     /* Equalizer Soundbars */
@@ -342,7 +347,7 @@
 
     @keyframes pulse { 0% { height: 4px; } 100% { height: 18px; } }
 
-    /* Drawer Side Menu */
+    /* Overlay */
     .drawer-overlay {
       position: fixed;
       inset: 0;
@@ -353,34 +358,56 @@
     }
     .drawer-overlay.open { display: block; }
 
-    .drawer-left {
+    /* Right Library Drawer */
+    .drawer-right {
       position: fixed;
       top: 0;
-      left: -100%;
-      width: 82%;
-      max-width: 320px;
+      right: -100%;
+      width: 86%;
+      max-width: 360px;
       height: 100%;
       background: var(--bg);
-      border-right: 1px solid var(--card-border);
+      border-left: 1px solid var(--card-border);
       z-index: 100;
-      transition: left 0.3s ease;
+      transition: right 0.3s ease;
       display: flex;
       flex-direction: column;
       padding: 20px;
     }
-    .drawer-left.open { left: 0; }
+    .drawer-right.open { right: 0; }
 
-    .nav-tabs { display: flex; gap: 8px; margin: 16px 0; }
+    /* Side-by-Side Ambient Light Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin: 16px 0;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+    }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+
     .tab-btn {
+      flex: 1;
+      white-space: nowrap;
+      text-align: center;
       background: var(--glass-btn);
       border: 1px solid var(--card-border);
-      padding: 6px 14px;
-      border-radius: 12px;
-      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 14px;
+      color: var(--subtext);
       font-size: 12px;
+      font-weight: 600;
       cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .tab-btn.active { background: var(--accent); color: #fff; }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+      box-shadow: 0 0 16px var(--accent);
+    }
 
     .list-container { flex: 1; overflow-y: auto; }
     .group-header {
@@ -391,12 +418,48 @@
       border-bottom: 1px solid var(--card-border);
     }
     .list-item {
-      padding: 10px 0 10px 8px;
+      padding: 12px 8px;
       border-bottom: 1px solid rgba(255,255,255,0.05);
       cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .list-item:active { background: var(--glass-btn-hover); }
+
+    /* Import Files Options UI */
+    .file-import-box {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 10px;
     }
 
-    /* Bottom Floating Action Switch Menu */
+    .import-card {
+      background: var(--glass-btn);
+      border: 1px dashed var(--accent);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .import-card:active {
+      transform: scale(0.98);
+      background: var(--glass-btn-hover);
+    }
+
+    .import-card h4 {
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .import-card p {
+      font-size: 11px;
+      color: var(--subtext);
+    }
+
+    /* Bottom Floating Action Switch Button */
     .floating-settings-btn {
       position: fixed;
       bottom: calc(20px + env(safe-area-inset-bottom));
@@ -409,7 +472,7 @@
       color: #fff;
       border: none;
       font-size: 22px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 0 15px var(--accent);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -419,6 +482,7 @@
 
     .floating-settings-btn:active { transform: scale(0.9); }
 
+    /* Bottom Sheet Popup Options */
     .bottom-sheet {
       position: fixed;
       bottom: -100%;
@@ -476,17 +540,17 @@
     }
 
     .color-dot:active { transform: scale(0.9); }
-    .color-dot.active { border-color: var(--text); }
+    .color-dot.active { border-color: var(--text); box-shadow: 0 0 10px var(--text); }
 
-    #folder-input { display: none; }
+    #file-input, #folder-input { display: none; }
   </style>
 </head>
 <body>
 
   <!-- Top Navigation Header -->
   <header>
+    <div class="app-title">Magnific</div>
     <button class="glass-btn" onclick="toggleLibrary()" aria-label="Library">☰</button>
-    <button class="glass-btn" onclick="document.getElementById('folder-input').click()" aria-label="Open Folder">📁</button>
   </header>
 
   <!-- Main Player Display -->
@@ -502,7 +566,7 @@
       <div class="track-info">
         <div style="overflow: hidden; padding-right: 8px;">
           <div class="track-title" id="player-title">No Track Loaded</div>
-          <div class="track-artist" id="player-artist">Tap 📁 to choose music</div>
+          <div class="track-artist" id="player-artist">Tap ☰ to import music</div>
         </div>
         <button class="ctrl-btn" id="fav-btn" onclick="toggleFav()">☆</button>
       </div>
@@ -515,15 +579,14 @@
         </div>
       </div>
 
+      <!-- Controls Bar with Separate Shuffle & Repeat Options -->
       <div class="controls-row">
-        <button class="ctrl-btn" onclick="playPrev()">⏮</button>
-        <button class="ctrl-btn play-btn" id="play-btn" onclick="togglePlay()">▶</button>
-        <button class="ctrl-btn" onclick="playNext()">⏭</button>
-        <button class="ctrl-btn" id="mode-btn" onclick="cyclePlaybackMode()">🔀</button>
+        <button class="ctrl-btn" id="shuffle-btn" onclick="toggleShuffle()" title="Shuffle">🔀</button>
+        <button class="ctrl-btn" onclick="playPrev()" title="Previous">⏮</button>
+        <button class="ctrl-btn play-btn" id="play-btn" onclick="togglePlay()" title="Play/Pause">▶</button>
+        <button class="ctrl-btn" onclick="playNext()" title="Next">⏭</button>
+        <button class="ctrl-btn" id="repeat-btn" onclick="toggleRepeat()" title="Repeat">🔁</button>
       </div>
-
-      <!-- Mode Label (Shuffle/Repeat Status) -->
-      <div class="mode-indicator" id="mode-indicator">Mode: Normal</div>
 
       <div class="soundbars" id="soundbars">
         <div class="bar"></div><div class="bar"></div><div class="bar"></div>
@@ -532,24 +595,29 @@
     </div>
   </main>
 
-  <!-- Left Library Drawer -->
+  <!-- Overlay -->
   <div class="drawer-overlay" id="overlay" onclick="closeAllPanels()"></div>
-  <div class="drawer-left" id="drawer-left">
+
+  <!-- Top-Right Library Drawer with Side-by-Side Ambient Light Tabs -->
+  <div class="drawer-right" id="drawer-right">
     <h2>Library</h2>
+    
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="renderView('songs', this)">Songs</button>
       <button class="tab-btn" onclick="renderView('albums', this)">Albums</button>
       <button class="tab-btn" onclick="renderView('artists', this)">Artists</button>
+      <button class="tab-btn" onclick="renderView('files', this)">Files</button>
     </div>
+
     <div class="list-container" id="list-container">
-      <div style="font-size:12px; color:var(--subtext); padding-top:10px;">No music loaded yet.</div>
+      <div style="font-size:12px; color:var(--subtext); padding-top:10px;">No music loaded yet. Switch to <b>Files</b> tab to import audio.</div>
     </div>
   </div>
 
   <!-- Bottom Floating Switch Button -->
   <button class="floating-settings-btn" onclick="toggleBottomSheet()" aria-label="Settings">⚙</button>
 
-  <!-- Bottom Sheet Popup Options -->
+  <!-- Bottom Sheet Customization Menu -->
   <div class="bottom-sheet" id="bottom-sheet">
     <div class="sheet-header">
       <span>App Customization</span>
@@ -567,16 +635,16 @@
     <div>
       <div class="setting-label">Player Layout Template</div>
       <select class="option-select" onchange="setStyle(this.value)">
-        <option value="ios-glass">iOS Glass Card (Image 1 & 3)</option>
-        <option value="minimal-dark">Minimalist OLED Card (Image 2)</option>
-        <option value="spotify">Spotify Fluid Canvas (Image 4)</option>
+        <option value="ios-glass">iOS Glass Card</option>
+        <option value="minimal-dark">Minimalist OLED Card</option>
+        <option value="spotify">Spotify Fluid Canvas</option>
         <option value="neumorphic">Neumorphic Soft Slate</option>
         <option value="cyber">Retro Cyber Glow</option>
       </select>
     </div>
 
     <div>
-      <div class="setting-label">Custom Accent Color</div>
+      <div class="setting-label">Custom Ambient Color</div>
       <div class="color-picker-row">
         <div class="color-dot active" style="background:#8b5cf6;" onclick="setAccent('purple', this)"></div>
         <div class="color-dot" style="background:#ff3b5c;" onclick="setAccent('crimson', this)"></div>
@@ -587,7 +655,10 @@
     </div>
   </div>
 
+  <!-- Hidden File Inputs -->
+  <input type="file" id="file-input" multiple accept="audio/*" />
   <input type="file" id="folder-input" webkitdirectory directory multiple accept="audio/*" />
+  
   <audio id="audio-player"></audio>
 
   <script>
@@ -601,273 +672,15 @@
 
     let playlist = [];
     let currentIndex = -1;
-    
-    // Playback Modes: 0 = Normal, 1 = Shuffle, 2 = Repeat 1, 3 = Repeat All
-    let playbackMode = 0; 
-    const modeLabels = ["Mode: Normal", "Mode: Shuffle", "Mode: Repeat Single", "Mode: Repeat All"];
-    const modeIcons = ["➡️", "🔀", "🔂", "🔁"];
+    let isShuffle = false;
+    let isRepeat = false;
 
     const audio = document.getElementById('audio-player');
     const seekBar = document.getElementById('seek-bar');
     const soundbars = document.getElementById('soundbars');
 
-    // Service Worker for Offline Functionality
+    // Register Service Worker for Offline Capability
     if ('serviceWorker' in navigator) {
       const swCode = `
         self.addEventListener('install', e => self.skipWaiting());
-        self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
-      `;
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
-    }
-
-    // --- IndexedDB Local Track Storage ---
-    function openDB() {
-      return new Promise((resolve, reject) => {
-        const req = indexedDB.open('MusicStorageDB', 1);
-        req.onupgradeneeded = () => req.result.createObjectStore('tracks', { keyPath: 'id' });
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
-    }
-
-    async function saveTrackToDB(track) {
-      const db = await openDB();
-      const tx = db.transaction('tracks', 'readwrite');
-      tx.objectStore('tracks').put(track);
-    }
-
-    async function loadStoredTracks() {
-      const db = await openDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction('tracks', 'readonly');
-        const req = tx.objectStore('tracks').getAll();
-        req.onsuccess = () => resolve(req.result || []);
-      });
-    }
-
-    window.addEventListener('DOMContentLoaded', async () => {
-      const saved = await loadStoredTracks();
-      if (saved.length > 0) {
-        playlist = saved.map(t => ({ ...t, url: URL.createObjectURL(t.blob) }));
-        renderView('songs');
-        loadTrack(0, false);
-      }
-    });
-
-    document.getElementById('folder-input').addEventListener('change', async (e) => {
-      const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
-      if (!files.length) return;
-
-      playlist = [];
-      for (let file of files) {
-        const trackObj = {
-          id: file.name + "_" + file.size,
-          title: file.name.replace(/\.[^/.]+$/, ""),
-          artist: "Unknown Artist",
-          album: "Unknown Album",
-          blob: file,
-          art: null
-        };
-
-        // Extract ID3 Metadata
-        if (window.jsmediatags) {
-          window.jsmediatags.read(file, {
-            onSuccess: function(tag) {
-              if (tag.tags.title) trackObj.title = tag.tags.title;
-              if (tag.tags.artist) trackObj.artist = tag.tags.artist;
-              if (tag.tags.album) trackObj.album = tag.tags.album;
-              if (tag.tags.picture) {
-                const { data, format } = tag.tags.picture;
-                let base64String = "";
-                for (let i = 0; i < data.length; i++) base64String += String.fromCharCode(data[i]);
-                trackObj.art = `data:${format};base64,${window.btoa(base64String)}`;
-              }
-            }
-          });
-        }
-
-        await saveTrackToDB(trackObj);
-        trackObj.url = URL.createObjectURL(file);
-        playlist.push(trackObj);
-      }
-      renderView('songs');
-      if (playlist.length) loadTrack(0, false);
-    });
-
-    // --- UI Controls & Sheet Toggle ---
-    function toggleLibrary() {
-      closeAllPanels();
-      document.getElementById('drawer-left').classList.add('open');
-      document.getElementById('overlay').classList.add('open');
-    }
-
-    function toggleBottomSheet() {
-      const sheet = document.getElementById('bottom-sheet');
-      const isOpen = sheet.classList.contains('open');
-      closeAllPanels();
-      if (!isOpen) {
-        sheet.classList.add('open');
-        document.getElementById('overlay').classList.add('open');
-      }
-    }
-
-    function closeAllPanels() {
-      document.getElementById('drawer-left').classList.remove('open');
-      document.getElementById('bottom-sheet').classList.remove('open');
-      document.getElementById('overlay').classList.remove('open');
-    }
-
-    function setTheme(theme) { document.documentElement.setAttribute('data-theme', theme); }
-    function setStyle(style) { document.documentElement.setAttribute('data-style', style); }
-    function setAccent(accent, el) {
-      document.documentElement.setAttribute('data-accent', accent);
-      document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-      el.classList.add('active');
-    }
-
-    function toggleFav() {
-      const btn = document.getElementById('fav-btn');
-      btn.innerText = btn.innerText === '☆' ? '★' : '☆';
-    }
-
-    // --- Unified Mode Toggle ---
-    function cyclePlaybackMode() {
-      playbackMode = (playbackMode + 1) % 4;
-      document.getElementById('mode-btn').innerText = modeIcons[playbackMode];
-      document.getElementById('mode-indicator').innerText = modeLabels[playbackMode];
-    }
-
-    // --- Library Rendering ---
-    function renderView(type, btn) {
-      if (btn) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      }
-
-      const container = document.getElementById('list-container');
-      if (!playlist.length) return;
-
-      if (type === 'songs') {
-        container.innerHTML = playlist.map((t, i) => `
-          <div class="list-item" onclick="loadTrack(${i}); closeAllPanels();">
-            <div style="font-weight:600; font-size:14px;">${t.title}</div>
-            <div style="font-size:12px; color:var(--subtext);">${t.artist}</div>
-          </div>
-        `).join('');
-      } else {
-        const key = type === 'albums' ? 'album' : 'artist';
-        const groups = {};
-        playlist.forEach((t, idx) => {
-          const name = t[key] || `Unknown ${key}`;
-          if (!groups[name]) groups[name] = [];
-          groups[name].push({ ...t, originalIndex: idx });
-        });
-
-        container.innerHTML = Object.keys(groups).map(groupName => `
-          <div class="group-header">${groupName} (${groups[groupName].length})</div>
-          ${groups[groupName].map(t => `
-            <div class="list-item" onclick="loadTrack(${t.originalIndex}); closeAllPanels();">
-              <div style="font-weight:600; font-size:13px;">${t.title}</div>
-            </div>
-          `).join('')}
-        `).join('');
-      }
-    }
-
-    // Swipe Support
-    let touchStartX = 0;
-    const swipeArea = document.getElementById('swipe-area');
-    swipeArea.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX);
-    swipeArea.addEventListener('touchend', e => {
-      const touchEndX = e.changedTouches[0].screenX;
-      if (touchEndX < touchStartX - 50) playNext();
-      if (touchEndX > touchStartX + 50) playPrev();
-    });
-
-    // --- Audio Logic ---
-    function loadTrack(index, autoPlay = true) {
-      currentIndex = index;
-      const track = playlist[currentIndex];
-      audio.src = track.url;
-      document.getElementById('player-title').innerText = track.title;
-      document.getElementById('player-artist').innerText = track.artist;
-
-      const artImg = document.getElementById('player-art');
-      const quoteBox = document.getElementById('quote-container');
-
-      if (track.art) {
-        artImg.src = track.art;
-        artImg.style.display = 'block';
-        quoteBox.style.display = 'none';
-      } else {
-        artImg.style.display = 'none';
-        quoteBox.style.display = 'flex';
-        document.getElementById('quote-text').innerText = quotes[Math.floor(Math.random() * quotes.length)];
-      }
-
-      if (autoPlay) {
-        audio.play();
-        document.getElementById('play-btn').innerText = '⏸';
-        soundbars.classList.add('playing');
-      }
-    }
-
-    function togglePlay() {
-      if (currentIndex === -1 && playlist.length) loadTrack(0);
-      if (audio.paused) {
-        audio.play();
-        document.getElementById('play-btn').innerText = '⏸';
-        soundbars.classList.add('playing');
-      } else {
-        audio.pause();
-        document.getElementById('play-btn').innerText = '▶';
-        soundbars.classList.remove('playing');
-      }
-    }
-
-    function playNext() {
-      if (!playlist.length) return;
-      if (playbackMode === 1) { // Shuffle
-        currentIndex = Math.floor(Math.random() * playlist.length);
-      } else {
-        currentIndex = (currentIndex + 1) % playlist.length;
-      }
-      loadTrack(currentIndex);
-    }
-
-    function playPrev() {
-      if (!playlist.length) return;
-      currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-      loadTrack(currentIndex);
-    }
-
-    audio.addEventListener('ended', () => {
-      if (playbackMode === 2) { // Repeat Single
-        audio.currentTime = 0;
-        audio.play();
-      } else {
-        playNext();
-      }
-    });
-
-    audio.addEventListener('timeupdate', () => {
-      if (audio.duration) {
-        seekBar.value = (audio.currentTime / audio.duration) * 100;
-        document.getElementById('time-curr').innerText = formatTime(audio.currentTime);
-        document.getElementById('time-dur').innerText = "-" + formatTime(audio.duration - audio.currentTime);
-      }
-    });
-
-    seekBar.addEventListener('input', () => {
-      if (audio.duration) audio.currentTime = (seekBar.value / 100) * audio.duration;
-    });
-
-    function formatTime(sec) {
-      const m = Math.floor(sec / 60);
-      const s = Math.floor(sec % 60);
-      return `${m}:${s < 10 ? '0' : ''}${s}`;
-    }
-  </script>
-</body>
-</html>
+        self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch
