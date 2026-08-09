@@ -5,13 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <title>Magnific Music Player</title>
 
+  <!-- Restore saved appearance before first paint, to avoid a flash of defaults -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('mp_theme');
+        var s = localStorage.getItem('mp_style');
+        var a = localStorage.getItem('mp_accent');
+        if (t) document.documentElement.setAttribute('data-theme', t);
+        if (s) document.documentElement.setAttribute('data-style', s);
+        if (a) document.documentElement.setAttribute('data-accent', a);
+      } catch (e) {}
+    })();
+  </script>
+
   <link rel="manifest" id="manifest-placeholder" />
   <meta name="theme-color" content="#0a0b0e" id="theme-color-meta" />
+
+  <!-- iOS home-screen / standalone-app support -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Magnific" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="color-scheme" content="dark light" />
 
-  <!-- ID3 Tag Reader Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+  <!-- ID3 tags are parsed locally further down — no external library, so this loads and runs with zero network calls -->
 
   <style>
     :root {
@@ -22,17 +40,22 @@
       --subtext: #9a9ab0;
       --glass-btn: rgba(255, 255, 255, 0.08);
       --glass-btn-hover: rgba(255, 255, 255, 0.16);
-      
-      /* Accent Colors */
+
       --accent-purple: #8b5cf6;
       --accent-crimson: #ff3b5c;
       --accent-emerald: #10b981;
       --accent-gold: #f59e0b;
       --accent-cyan: #06b6d4;
       --accent: var(--accent-purple);
-      
+
       --radius-card: 32px;
       --radius-art: 22px;
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+      /* Neumorphic "elevated" surface used only for the settings dial */
+      --neu-bg: #16171c;
+      --neu-shadow: 7px 7px 16px rgba(0, 0, 0, 0.5), -6px -6px 14px rgba(255, 255, 255, 0.045);
+      --neu-shadow-active: inset 4px 4px 8px rgba(0, 0, 0, 0.5), inset -3px -3px 6px rgba(255, 255, 255, 0.03);
     }
 
     [data-theme="light"] {
@@ -43,6 +66,10 @@
       --subtext: #686b75;
       --glass-btn: rgba(0, 0, 0, 0.05);
       --glass-btn-hover: rgba(0, 0, 0, 0.12);
+
+      --neu-bg: #eef1f6;
+      --neu-shadow: 7px 7px 16px rgba(0, 0, 0, 0.14), -6px -6px 14px rgba(255, 255, 255, 0.95);
+      --neu-shadow-active: inset 4px 4px 8px rgba(0, 0, 0, 0.12), inset -3px -3px 6px rgba(255, 255, 255, 0.9);
     }
 
     [data-accent="purple"] { --accent: var(--accent-purple); }
@@ -73,20 +100,8 @@
       padding-bottom: env(safe-area-inset-bottom);
     }
 
-    /* Top Navigation Header */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 20px;
-      z-index: 10;
-    }
-
-    .app-title {
-      font-size: 17px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; z-index: 10; }
+    .app-title { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
 
     .glass-btn {
       background: var(--glass-btn);
@@ -107,15 +122,7 @@
 
     .glass-btn:active { transform: scale(0.9); background: var(--glass-btn-hover); }
 
-    /* Main Container */
-    .main-player {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 16px;
-      touch-action: pan-y;
-    }
+    .main-player { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 16px; touch-action: pan-y; }
 
     .player-card {
       width: 100%;
@@ -129,150 +136,41 @@
       display: flex;
       flex-direction: column;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
+      transition: opacity 0.25s ease, transform 0.25s ease, background 0.3s ease, border-radius 0.3s ease, box-shadow 0.3s ease;
       position: relative;
     }
 
-    /* Card Templates */
     [data-style="ios-glass"] .player-card { padding: 22px; }
-    [data-style="ios-glass"] .album-frame {
-      width: 100%;
-      aspect-ratio: 1;
-      border-radius: var(--radius-art);
-      overflow: hidden;
-      margin-bottom: 18px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-    }
+    [data-style="ios-glass"] .album-frame { width: 100%; aspect-ratio: 1; border-radius: var(--radius-art); overflow: hidden; margin-bottom: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); }
 
-    [data-style="minimal-dark"] .player-card {
-      background: #000000;
-      border: 1px solid #1f1f1f;
-      border-radius: 36px;
-    }
-    [data-style="minimal-dark"] .album-frame {
-      width: 100%;
-      aspect-ratio: 1;
-      border-radius: 24px;
-      background: #111111;
-      margin-bottom: 20px;
-    }
+    [data-style="minimal-dark"] .player-card { background: #000000; border: 1px solid #1f1f1f; border-radius: 36px; }
+    [data-style="minimal-dark"] .album-frame { width: 100%; aspect-ratio: 1; border-radius: 24px; background: #111111; margin-bottom: 20px; }
 
-    [data-style="spotify"] .player-card {
-      background: transparent;
-      border: none;
-      box-shadow: none;
-      backdrop-filter: none;
-    }
-    [data-style="spotify"] .album-frame {
-      width: 100%;
-      aspect-ratio: 1;
-      border-radius: 16px;
-      margin-bottom: 24px;
-      box-shadow: 0 16px 36px rgba(0,0,0,0.4);
-    }
+    [data-style="spotify"] .player-card { background: transparent; border: none; box-shadow: none; backdrop-filter: none; }
+    [data-style="spotify"] .album-frame { width: 100%; aspect-ratio: 1; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 16px 36px rgba(0,0,0,0.4); }
 
-    [data-style="neumorphic"] .player-card {
-      background: var(--bg);
-      border: none;
-      box-shadow: 12px 12px 24px rgba(0, 0, 0, 0.4), -8px -8px 18px rgba(255, 255, 255, 0.03);
-      border-radius: 36px;
-    }
-    [data-style="neumorphic"] .album-frame {
-      width: 100%;
-      aspect-ratio: 1;
-      border-radius: 24px;
-      box-shadow: inset 4px 4px 8px rgba(0,0,0,0.5), inset -4px -4px 8px rgba(255,255,255,0.02);
-      margin-bottom: 20px;
-    }
+    [data-style="neumorphic"] .player-card { background: var(--bg); border: none; box-shadow: 12px 12px 24px rgba(0, 0, 0, 0.4), -8px -8px 18px rgba(255, 255, 255, 0.03); border-radius: 36px; }
+    [data-style="neumorphic"] .album-frame { width: 100%; aspect-ratio: 1; border-radius: 24px; box-shadow: inset 4px 4px 8px rgba(0,0,0,0.5), inset -4px -4px 8px rgba(255,255,255,0.02); margin-bottom: 20px; }
 
-    [data-style="cyber"] .player-card {
-      background: rgba(10, 10, 18, 0.9);
-      border: 2px solid var(--accent);
-      box-shadow: 0 0 20px var(--accent);
-      border-radius: 20px;
-    }
-    [data-style="cyber"] .album-frame {
-      width: 100%;
-      aspect-ratio: 1;
-      border-radius: 12px;
-      border: 1px solid var(--accent);
-      margin-bottom: 20px;
-    }
+    [data-style="cyber"] .player-card { background: rgba(10, 10, 18, 0.9); border: 2px solid var(--accent); box-shadow: 0 0 20px var(--accent); border-radius: 20px; }
+    [data-style="cyber"] .album-frame { width: 100%; aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--accent); margin-bottom: 20px; }
 
-    .album-art {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: none;
-    }
+    .album-art { width: 100%; height: 100%; object-fit: cover; display: none; }
 
-    .quote-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      text-align: center;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.15));
-    }
+    .quote-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.15)); }
+    .quote-text { font-size: 14px; font-weight: 600; font-style: italic; line-height: 1.4; }
 
-    .quote-text {
-      font-size: 14px;
-      font-weight: 600;
-      font-style: italic;
-      line-height: 1.4;
-    }
-
-    .track-info {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-    }
-
+    .track-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
     .track-title { font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .track-artist { font-size: 13px; color: var(--subtext); margin-top: 2px; }
 
-    /* Progress Bar */
     .progress-box { margin-bottom: 16px; }
-    .progress-bar {
-      width: 100%;
-      -webkit-appearance: none;
-      height: 4px;
-      border-radius: 4px;
-      background: rgba(255,255,255,0.15);
-      outline: none;
-    }
+    .progress-bar { width: 100%; -webkit-appearance: none; height: 4px; border-radius: 4px; background: rgba(255,255,255,0.15); outline: none; }
+    .progress-bar::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 10px var(--accent); }
 
-    .progress-bar::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--accent);
-      cursor: pointer;
-      box-shadow: 0 0 10px var(--accent);
-    }
+    .time-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--subtext); margin-top: 6px; font-variant-numeric: tabular-nums; }
 
-    .time-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: var(--subtext);
-      margin-top: 6px;
-    }
-
-    /* Controls Alignment */
-    .controls-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      margin-bottom: 8px;
-      padding: 0 4px;
-    }
+    .controls-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px; padding: 0 4px; }
 
     .ctrl-btn {
       background: var(--glass-btn);
@@ -292,262 +190,237 @@
 
     .ctrl-btn:active { transform: scale(0.88); }
 
-    .ctrl-btn.active-glow {
-      opacity: 1;
-      border-color: var(--accent);
-      color: var(--accent);
-      box-shadow: 0 0 14px var(--accent);
-      background: rgba(255, 255, 255, 0.12);
+    .ctrl-btn.active-glow { opacity: 1; border-color: var(--accent); color: var(--accent); box-shadow: 0 0 14px var(--accent); background: rgba(255, 255, 255, 0.12); }
+
+    @keyframes fav-bounce {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.35) rotate(-8deg); }
+      70% { transform: scale(0.92); }
+      100% { transform: scale(1); }
     }
 
     .play-btn {
-      width: 58px;
-      height: 58px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: #ffffff;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      opacity: 1;
+      width: 58px; height: 58px; border-radius: 50%;
+      background: var(--accent); color: #ffffff; border: none;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; opacity: 1;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 0 15px var(--accent);
     }
+    .play-btn:active { transform: scale(0.88) rotate(-3deg); }
 
-    /* Equalizer Visualizer */
-    .soundbars {
-      display: flex;
-      align-items: flex-end;
-      gap: 3px;
-      height: 18px;
-      justify-content: center;
-      margin-top: 10px;
-    }
-
-    .bar {
-      width: 3px;
-      background: var(--accent);
-      height: 4px;
-      border-radius: 2px;
-      transition: height 0.1s ease;
-    }
-
-    .soundbars.playing .bar {
-      animation: pulse 0.6s infinite alternate ease-in-out;
-    }
+    .soundbars { display: flex; align-items: flex-end; gap: 3px; height: 18px; justify-content: center; margin-top: 10px; }
+    .bar { width: 3px; background: var(--accent); height: 4px; border-radius: 2px; transition: height 0.1s ease; }
+    .soundbars.playing .bar { animation: pulse 0.6s infinite alternate ease-in-out; }
     .soundbars.playing .bar:nth-child(2n) { animation-delay: 0.2s; }
     .soundbars.playing .bar:nth-child(3n) { animation-delay: 0.4s; }
-
     @keyframes pulse { 0% { height: 4px; } 100% { height: 18px; } }
 
-    /* Overlay */
-    .drawer-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
-      z-index: 90;
-      display: none;
-    }
-    .drawer-overlay.open { display: block; }
+    .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+    .drawer-overlay.open { opacity: 1; pointer-events: auto; }
 
-    /* Top Right Library Drawer */
     .drawer-right {
-      position: fixed;
-      top: 0;
-      right: -100%;
-      width: 86%;
-      max-width: 360px;
-      height: 100%;
-      background: var(--bg);
-      border-left: 1px solid var(--card-border);
-      z-index: 100;
-      transition: right 0.3s ease;
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
+      position: fixed; top: 0; right: -100%; width: 86%; max-width: 360px; height: 100%;
+      background: var(--bg); border-left: 1px solid var(--card-border); z-index: 100;
+      transition: right 0.3s ease; display: flex; flex-direction: column; padding: 20px;
+      padding-top: calc(20px + env(safe-area-inset-top));
     }
     .drawer-right.open { right: 0; }
 
-    /* Side-by-Side Tab Buttons */
-    .nav-tabs {
-      display: flex;
-      gap: 8px;
-      margin: 16px 0;
-      overflow-x: auto;
-      padding-bottom: 6px;
-      scrollbar-width: none;
-    }
+    .nav-tabs { display: flex; gap: 8px; margin: 16px 0; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
     .nav-tabs::-webkit-scrollbar { display: none; }
 
     .tab-btn {
-      flex: 1;
-      white-space: nowrap;
-      text-align: center;
-      background: var(--glass-btn);
-      border: 1px solid var(--card-border);
-      padding: 8px 12px;
-      border-radius: 14px;
-      color: var(--subtext);
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
+      flex: 1; white-space: nowrap; text-align: center;
+      background: var(--glass-btn); border: 1px solid var(--card-border);
+      padding: 8px 12px; border-radius: 14px; color: var(--subtext);
+      font-size: 12px; font-weight: 600; cursor: pointer;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-    .tab-btn.active {
-      background: var(--accent);
-      color: #ffffff;
-      border-color: var(--accent);
-      box-shadow: 0 0 16px var(--accent);
-    }
+    .tab-btn:active { transform: scale(0.93); }
+    .tab-btn.active { background: var(--accent); color: #ffffff; border-color: var(--accent); box-shadow: 0 0 16px var(--accent); }
 
     .list-container { flex: 1; overflow-y: auto; }
-    .group-header {
-      font-size: 13px;
-      font-weight: 700;
-      padding: 10px 0 4px 0;
-      color: var(--accent);
-      border-bottom: 1px solid var(--card-border);
-    }
+
+    @keyframes fade-slide-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .group-header { font-size: 13px; font-weight: 700; padding: 10px 0 4px 0; color: var(--accent); border-bottom: 1px solid var(--card-border); }
+
     .list-item {
       padding: 12px 8px;
       border-bottom: 1px solid rgba(255,255,255,0.05);
       cursor: pointer;
-      transition: background 0.15s ease;
+      transition: background 0.15s ease, transform 0.15s ease;
+      animation: fade-slide-in 0.25s ease backwards;
+      border-radius: 10px;
     }
-    .list-item:active { background: var(--glass-btn-hover); }
+    .list-item:active { background: var(--glass-btn-hover); transform: scale(0.98); }
+    .list-item.now-playing { color: var(--accent); }
 
-    /* Files Import Box */
-    .file-import-box {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding-top: 10px;
-    }
+    .empty-hint { font-size: 12px; color: var(--subtext); padding-top: 10px; line-height: 1.6; }
+
+    .file-import-box { display: flex; flex-direction: column; gap: 12px; padding-top: 10px; }
 
     .import-card {
-      background: var(--glass-btn);
-      border: 1px dashed var(--accent);
-      border-radius: 16px;
-      padding: 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      background: var(--glass-btn); border: 1px dashed var(--accent); border-radius: 16px;
+      padding: 20px; text-align: center; cursor: pointer;
+      transition: all 0.2s ease; animation: fade-slide-in 0.3s ease backwards;
+    }
+    .import-card:active { transform: scale(0.98); background: var(--glass-btn-hover); }
+    .import-card h4 { font-size: 14px; color: var(--text); margin-bottom: 4px; }
+    .import-card p { font-size: 11px; color: var(--subtext); }
+    .import-card .fine-print { font-size: 10px; color: var(--subtext); opacity: 0.75; margin-top: 6px; }
+
+    /* Pointer/mouse hover feedback (guarded so it doesn't stick on touch devices) */
+    @media (hover: hover) and (pointer: fine) {
+      .tab-btn:hover { background: var(--glass-btn-hover); color: var(--text); }
+      .list-item:hover { background: var(--glass-btn-hover); }
+      .import-card:hover { background: var(--glass-btn-hover); border-color: var(--accent); transform: translateY(-1px); }
+      .ctrl-btn:hover { background: var(--glass-btn-hover); opacity: 0.9; }
+      .glass-btn:hover { background: var(--glass-btn-hover); }
+      .fab-mini:hover, .floating-settings-btn:hover, .strip-btn:hover { filter: brightness(1.08); }
     }
 
-    .import-card:active {
-      transform: scale(0.98);
-      background: var(--glass-btn-hover);
-    }
-
-    .import-card h4 {
-      font-size: 14px;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-
-    .import-card p {
-      font-size: 11px;
-      color: var(--subtext);
-    }
-
-    /* Bottom Floating Action Switch Button */
-    .floating-settings-btn {
+    /* ---------- Settings dial: floating button + 3 pop-out actions ---------- */
+    .fab-dock {
       position: fixed;
       bottom: calc(20px + env(safe-area-inset-bottom));
       right: 20px;
-      z-index: 120;
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: #fff;
+      z-index: 130;
+    }
+
+    .floating-settings-btn {
+      position: relative;
+      width: 56px;
+      height: 56px;
+      border-radius: 20px;
+      background: var(--neu-bg);
+      color: var(--accent);
       border: none;
       font-size: 22px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 0 15px var(--accent);
+      box-shadow: var(--neu-shadow);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.2s ease;
+      transition: transform 0.32s var(--ease-spring), box-shadow 0.2s ease;
     }
+    .floating-settings-btn:active { box-shadow: var(--neu-shadow-active); }
+    .floating-settings-btn.open { transform: rotate(45deg); }
 
-    .floating-settings-btn:active { transform: scale(0.9); }
-
-    /* Bottom Sheet Settings Menu */
-    .bottom-sheet {
-      position: fixed;
-      bottom: -100%;
-      left: 0;
-      width: 100%;
-      background: var(--bg);
-      border-top-left-radius: 28px;
-      border-top-right-radius: 28px;
-      border-top: 1px solid var(--card-border);
-      z-index: 110;
-      padding: 24px;
-      padding-bottom: calc(28px + env(safe-area-inset-bottom));
-      box-shadow: 0 -15px 35px rgba(0,0,0,0.5);
-      transition: bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    .fab-mini {
+      position: absolute;
+      right: 5px;
+      bottom: 5px;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: var(--neu-bg);
+      border: 2px solid transparent;
+      color: var(--text);
+      font-size: 17px;
       display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .bottom-sheet.open { bottom: 0; }
-
-    .sheet-header {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      font-weight: 700;
-      font-size: 16px;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: var(--neu-shadow);
+      opacity: 0;
+      transform: scale(0.35);
+      pointer-events: none;
+      transition: transform 0.3s var(--ease-spring), opacity 0.22s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
+    .fab-mini:active { box-shadow: var(--neu-shadow-active); }
 
-    .setting-label { font-size: 12px; color: var(--subtext); margin-bottom: 6px; text-transform: uppercase; }
-    .option-select {
-      width: 100%;
-      padding: 10px;
-      border-radius: 12px;
-      background: var(--glass-btn);
+    .fab-dock.open .fab-mini { opacity: 1; pointer-events: auto; }
+    .fab-dock.open .fab-mini[data-order="1"] { transform: translateY(-64px) scale(1); transition-delay: 0.02s; }
+    .fab-dock.open .fab-mini[data-order="2"] { transform: translateY(-128px) scale(1); transition-delay: 0.06s; }
+    .fab-dock.open .fab-mini[data-order="3"] { transform: translateY(-192px) scale(1); transition-delay: 0.1s; }
+
+    #color-mini { border-color: var(--accent); }
+
+    .option-strip {
+      position: absolute;
+      right: 66px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    #color-strip { bottom: 133px; }
+    #template-strip { bottom: 197px; }
+
+    .strip-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--neu-bg);
+      box-shadow: var(--neu-shadow);
+      border: 2px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      opacity: 0;
+      transform: scale(0.3) translateX(16px);
+      pointer-events: none;
+      transition: transform 0.26s var(--ease-spring), opacity 0.2s ease, border-color 0.2s ease;
+    }
+    .option-strip.open .strip-btn { opacity: 1; transform: scale(1) translateX(0); pointer-events: auto; }
+    .option-strip .strip-btn:nth-child(1) { transition-delay: 0.02s; }
+    .option-strip .strip-btn:nth-child(2) { transition-delay: 0.06s; }
+    .option-strip .strip-btn:nth-child(3) { transition-delay: 0.1s; }
+    .option-strip .strip-btn:nth-child(4) { transition-delay: 0.14s; }
+    .option-strip .strip-btn:nth-child(5) { transition-delay: 0.18s; }
+    .strip-btn.selected { border-color: var(--text); }
+    .strip-btn:active { transform: scale(0.85); }
+
+    /* Toasts */
+    .toast-container {
+      position: fixed;
+      bottom: calc(90px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 8px;
+      z-index: 200;
+      pointer-events: none;
+      width: 88%;
+      max-width: 300px;
+      align-items: center;
+    }
+    .toast {
+      background: var(--neu-bg);
       border: 1px solid var(--card-border);
       color: var(--text);
-      font-size: 14px;
-      outline: none;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 12.5px;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      animation: toast-in 0.3s var(--ease-spring) forwards, toast-out 0.3s ease 2.6s forwards;
     }
-
-    .color-picker-row {
-      display: flex;
-      gap: 12px;
-      margin-top: 4px;
-    }
-
-    .color-dot {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: transform 0.2s;
-    }
-
-    .color-dot:active { transform: scale(0.9); }
-    .color-dot.active { border-color: var(--text); box-shadow: 0 0 10px var(--text); }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(12px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes toast-out { to { opacity: 0; transform: translateY(-8px); } }
 
     #file-input, #folder-input { display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Header Section -->
   <header>
     <div class="app-title">Magnific</div>
     <button class="glass-btn" onclick="toggleLibrary()" aria-label="Library">☰</button>
   </header>
 
-  <!-- Player Display Area -->
   <main class="main-player" id="swipe-area">
     <div class="player-card">
       <div class="album-frame">
@@ -562,18 +435,17 @@
           <div class="track-title" id="player-title">No Track Loaded</div>
           <div class="track-artist" id="player-artist">Tap ☰ to import music</div>
         </div>
-        <button class="ctrl-btn" id="fav-btn" onclick="toggleFav()">☆</button>
+        <button class="ctrl-btn" id="fav-btn" onclick="toggleFav()" aria-label="Favorite">☆</button>
       </div>
 
       <div class="progress-box">
-        <input type="range" class="progress-bar" id="seek-bar" value="0" max="100" />
+        <input type="range" class="progress-bar" id="seek-bar" value="0" max="100" aria-label="Seek" />
         <div class="time-row">
           <span id="time-curr">0:00</span>
           <span id="time-dur">-0:00</span>
         </div>
       </div>
 
-      <!-- Controls Row -->
       <div class="controls-row">
         <button class="ctrl-btn" id="shuffle-btn" onclick="toggleShuffle()" title="Shuffle">🔀</button>
         <button class="ctrl-btn" onclick="playPrev()" title="Previous">⏮</button>
@@ -591,98 +463,8 @@
 
   <div class="drawer-overlay" id="overlay" onclick="closeAllPanels()"></div>
 
-  <!-- Top-Right Library Drawer -->
   <div class="drawer-right" id="drawer-right">
     <h2>Library</h2>
-    
+
     <div class="nav-tabs">
-      <button class="tab-btn active" onclick="renderView('songs', this)">Songs</button>
-      <button class="tab-btn" onclick="renderView('albums', this)">Albums</button>
-      <button class="tab-btn" onclick="renderView('artists', this)">Artists</button>
-      <button class="tab-btn" onclick="renderView('files', this)">Files</button>
-    </div>
-
-    <div class="list-container" id="list-container">
-      <div style="font-size:12px; color:var(--subtext); padding-top:10px;">No music loaded yet. Switch to <b>Files</b> tab to import audio.</div>
-    </div>
-  </div>
-
-  <!-- Bottom Floating Switch Trigger -->
-  <button class="floating-settings-btn" onclick="toggleBottomSheet()" aria-label="Settings">⚙</button>
-
-  <!-- Bottom Sheet Menu -->
-  <div class="bottom-sheet" id="bottom-sheet">
-    <div class="sheet-header">
-      <span>App Customization</span>
-      <button class="glass-btn" style="width:32px; height:32px; font-size:14px;" onclick="toggleBottomSheet()">✕</button>
-    </div>
-
-    <div>
-      <div class="setting-label">Appearance Theme</div>
-      <select class="option-select" onchange="setTheme(this.value)">
-        <option value="dark">Dark Theme</option>
-        <option value="light">Light Theme</option>
-      </select>
-    </div>
-
-    <div>
-      <div class="setting-label">Player Layout Template</div>
-      <select class="option-select" onchange="setStyle(this.value)">
-        <option value="ios-glass">iOS Glass Card</option>
-        <option value="minimal-dark">Minimalist OLED Card</option>
-        <option value="spotify">Spotify Fluid Canvas</option>
-        <option value="neumorphic">Neumorphic Soft Slate</option>
-        <option value="cyber">Retro Cyber Glow</option>
-      </select>
-    </div>
-
-    <div>
-      <div class="setting-label">Custom Ambient Color</div>
-      <div class="color-picker-row">
-        <div class="color-dot active" style="background:#8b5cf6;" onclick="setAccent('purple', this)"></div>
-        <div class="color-dot" style="background:#ff3b5c;" onclick="setAccent('crimson', this)"></div>
-        <div class="color-dot" style="background:#10b981;" onclick="setAccent('emerald', this)"></div>
-        <div class="color-dot" style="background:#f59e0b;" onclick="setAccent('gold', this)"></div>
-        <div class="color-dot" style="background:#06b6d4;" onclick="setAccent('cyan', this)"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Native File Pickers -->
-  <input type="file" id="file-input" multiple accept="audio/*" />
-  <input type="file" id="folder-input" webkitdirectory directory multiple accept="audio/*" />
-  
-  <audio id="audio-player"></audio>
-
-  <script>
-    const quotes = [
-      "\"Where words fail, music speaks.\"",
-      "\"One good thing about music, when it hits you, you feel no pain.\"",
-      "\"Turn your passion into power.\"",
-      "\"Music cleanses the soul from everyday life.\"",
-      "\"Stay hungry, stay foolish.\""
-    ];
-
-    let playlist = [];
-    let currentIndex = -1;
-    let isShuffle = false;
-    let isRepeat = false;
-
-    const audio = document.getElementById('audio-player');
-    const seekBar = document.getElementById('seek-bar');
-    const soundbars = document.getElementById('soundbars');
-
-    // Register Service Worker for Offline Execution
-    if ('serviceWorker' in navigator) {
-      const swCode = `
-        self.addEventListener('install', e => self.skipWaiting());
-        self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
-      `;
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
-    }
-
-    // --- IndexedDB Cache Engine ---
-    function openDB() {
-      return new Promise((resolve, reject) => {
-        const req = indexedDB.open('MusicStorag
+      <button class="tab-btn active" onclick="renderView('songs', this
