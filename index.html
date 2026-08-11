@@ -670,11 +670,11 @@
       </div>
 
       <div class="controls-row">
-        <button class="ctrl-btn" id="shuffle-btn" onclick="toggleShuffle()" title="Shuffle">🔀</button>
+        <button class="ctrl-btn" id="shuffle-btn" onclick="toggleShuffle()" title="Shuffle">➿</button>
         <button class="ctrl-btn" onclick="playPrev()" title="Previous">⏮</button>
         <button class="ctrl-btn play-btn" id="play-btn" onclick="togglePlay()" title="Play/Pause">▶</button>
         <button class="ctrl-btn" onclick="playNext()" title="Next">⏭</button>
-        <button class="ctrl-btn" id="repeat-btn" onclick="toggleRepeat()" title="Repeat">🔁</button>
+        <button class="ctrl-btn" id="repeat-btn" onclick="toggleRepeat()" title="Repeat">↺</button>
       </div>
 
       <div class="soundbars" id="soundbars">
@@ -1405,7 +1405,7 @@
 
     function startPlayback() {
       audio.play().catch(() => {});
-      document.getElementById('play-btn').textContent = '⏸';
+      document.getElementById('play-btn').textContent = '||';
       soundbars.classList.add('playing');
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
     }
